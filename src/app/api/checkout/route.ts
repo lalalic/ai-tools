@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia' as Stripe.LatestApiVersion,
-})
+export const dynamic = 'force-dynamic'
+
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2024-12-18.acacia' as Stripe.LatestApiVersion,
+  })
+}
 
 const PLANS: Record<string, { name: string; price: number; interval: 'month' | 'year' }> = {
   pro: { name: 'SmartAI Pro', price: 999, interval: 'month' }, // $9.99
@@ -20,6 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
+    const stripe = getStripe()
     const origin = request.headers.get('origin') || 'http://localhost:3000'
 
     const session = await stripe.checkout.sessions.create({

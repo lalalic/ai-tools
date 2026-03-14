@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { toolConfigs } from '@/lib/tools'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+export const dynamic = 'force-dynamic'
+
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 // Simple rate limiting in memory
 const usageMap = new Map<string, { count: number; resetAt: number }>()
@@ -76,6 +78,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const openai = getOpenAI()
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
